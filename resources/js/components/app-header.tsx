@@ -30,19 +30,13 @@ import { UserMenuContent } from '@/components/user-menu-content';
 import { useInitials } from '@/hooks/use-initials';
 import { cn, isSameUrl, resolveUrl } from '@/lib/utils';
 import { dashboard } from '@/routes';
+import bookings from '@/routes/bookings';
+import services from '@/routes/services';
 import { type BreadcrumbItem, type NavItem, type SharedData } from '@/types';
 import { Link, usePage } from '@inertiajs/react';
-import { BookOpen, Folder, LayoutGrid, Menu, Search } from 'lucide-react';
+import { BookOpen, Calendar, Folder, LayoutGrid, Menu, Search, Sparkles } from 'lucide-react';
 import AppLogo from './app-logo';
 import AppLogoIcon from './app-logo-icon';
-
-const mainNavItems: NavItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard(),
-        icon: LayoutGrid,
-    },
-];
 
 const rightNavItems: NavItem[] = [
     {
@@ -68,6 +62,30 @@ export function AppHeader({ breadcrumbs = [] }: AppHeaderProps) {
     const page = usePage<SharedData>();
     const { auth } = page.props;
     const getInitials = useInitials();
+    const isAdmin = auth.user?.role === 'admin';
+
+    // Build navigation items based on user role
+    const mainNavItems: NavItem[] = [
+        {
+            title: 'Dashboard',
+            href: dashboard(),
+            icon: LayoutGrid,
+        },
+        {
+            title: 'Pemesanan',
+            href: bookings.index(),
+            icon: Calendar,
+        },
+    ];
+
+    // Add Services menu only for admin
+    if (isAdmin) {
+        mainNavItems.push({
+            title: 'Layanan',
+            href: services.index(),
+            icon: Sparkles,
+        });
+    }
     return (
         <>
             <div className="border-b border-sidebar-border/80">
