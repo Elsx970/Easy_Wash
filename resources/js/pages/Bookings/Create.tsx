@@ -4,7 +4,8 @@ import bookings from '@/routes/bookings';
 import {
     MapPin, Phone, Clock, XCircle,
     Calendar as CalendarIcon, CreditCard, MousePointerClick,
-    User, Map, Check
+    User, Map, Check,
+    Car, Truck, Bike // <-- MENAMBAHKAN ICON KENDARAAN
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -137,6 +138,13 @@ const SERVICE_FEATURES = [
     }
 ];
 
+// --- DATA PILIHAN KENDARAAN (BARU) ---
+const VEHICLE_OPTIONS = [
+    { id: 'mobil_m', label: 'M', name: 'Mobil (M)', icon: Car },
+    { id: 'mobil_l', label: 'L', name: 'Mobil (L)', icon: Truck }, // Menggunakan Truck sebagai representasi SUV/Besar
+    { id: 'motor', label: '', name: 'Motor', icon: Bike },
+];
+
 export default function BookingsCreate({ services }: Props) {
     const { auth } = usePage<SharedData>().props;
     const userName = auth?.user?.name || 'Pelanggan';
@@ -153,7 +161,7 @@ export default function BookingsCreate({ services }: Props) {
     const { data, setData, post, processing, errors, transform } = useForm({
         location_id: '',
         service_id: '',
-        vehicle_type: 'mobil',
+        vehicle_type: 'mobil_m', // Default vehicle type
         vehicle_plate: '',
         date: '',
         time: '',
@@ -203,6 +211,12 @@ export default function BookingsCreate({ services }: Props) {
 
     const selectedService = services.find(s => s.id.toString() === data.service_id);
     const selectedLocation = LOCATIONS.find(l => l.id === data.location_id);
+
+    // Helper untuk menampilkan nama kendaraan yang dipilih
+    const getVehicleLabel = (id: string) => {
+        const v = VEHICLE_OPTIONS.find(opt => opt.id === id);
+        return v ? v.name : 'Kendaraan';
+    };
 
     const getServiceIdByKey = (key: string) => {
         const found = services.find(s => s.name.toLowerCase().includes(key) || (key === 'kilat' && s.name.toLowerCase().includes('express')));
@@ -266,7 +280,7 @@ export default function BookingsCreate({ services }: Props) {
                         {/* Connecting Line Background */}
                         <div className="absolute top-[2rem] left-[6rem] right-[6rem] h-[2px] bg-gray-600 z-0 hidden md:block"></div>
                         
-                        {/* Active Line Blue (PERBAIKAN: Kalkulasi dinamis berdasarkan total panjang track) */}
+                        {/* Active Line Blue */}
                         <div
                             className="absolute top-[2rem] left-[6rem] h-[2px] bg-blue-500 z-0 hidden md:block transition-all duration-700 ease-in-out"
                             style={{ width: `calc((100% - 12rem) * ${getProgressRatio()})` }}
@@ -274,7 +288,7 @@ export default function BookingsCreate({ services }: Props) {
 
                         {[
                             { id: 1, icon: Map, label: "Langkah 1", sub: "Pilih Lokasi" },
-                            { id: 2, icon: MousePointerClick, label: "Langkah 2", sub: "Pilih Layanan" },
+                            { id: 2, icon: MousePointerClick, label: "Langkah 2", sub: "Layanan & Kendaraan" }, // <-- UPDATE LABEL
                             { id: 3, icon: CalendarIcon, label: "Langkah 3", sub: "Waktu" },
                             { id: 4, icon: CreditCard, label: "Langkah 4", sub: "Konfirmasi" },
                         ].map((s) => {
@@ -362,12 +376,53 @@ export default function BookingsCreate({ services }: Props) {
                     </div>
                 )}
 
-                {/* --- STEP 2: PILIH LAYANAN --- */}
+                {/* --- STEP 2: PILIH KENDARAAN & LAYANAN --- */}
                 {step === 2 && (
                     <div className="animate-in fade-in slide-in-from-bottom-8 duration-500">
                         <h2 className="text-4xl font-extrabold text-center text-white mb-12 tracking-tight drop-shadow-md">
-                            Pilih Paket Layanan
+                            Pilih Kendaraan & Paket Layanan
                         </h2>
+                        
+                        {/* --- NEW SECTION: PILIH TIPE KENDARAAN --- */}
+                        <div className="bg-white rounded-xl shadow-lg p-8 mb-10 max-w-3xl mx-auto border border-gray-100">
+                             <h3 className="text-xl font-bold text-[#0F172A] text-center mb-8">Pilih Ukuran Kendaraan Kamu</h3>
+                             
+                             <div className="flex justify-center gap-6 md:gap-12">
+                                {VEHICLE_OPTIONS.map((v) => {
+                                    const isSelected = data.vehicle_type === v.id;
+                                    return (
+                                        <div 
+                                            key={v.id}
+                                            onClick={() => setData('vehicle_type', v.id)}
+                                            className="flex flex-col items-center gap-3 cursor-pointer group"
+                                        >
+                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                                isSelected 
+                                                    ? 'bg-gray-200 border-gray-300 text-[#1b1b18]' 
+                                                    : 'bg-gray-50 border-gray-200 text-gray-400 group-hover:border-blue-300'
+                                            }`}>
+                                                <v.icon className="w-8 h-8" strokeWidth={1.5} />
+                                            </div>
+                                            <div className="flex flex-col items-center">
+                                                {/* Label Besar (M / L) jika ada */}
+                                                {v.label && (
+                                                    <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
+                                                        {v.label}
+                                                    </span>
+                                                )}
+                                                {/* Nama Kendaraan untuk tooltip/subtitle jika motor */}
+                                                {!v.label && (
+                                                     <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
+                                                        Motor
+                                                    </span>
+                                                )}
+                                            </div>
+                                        </div>
+                                    )
+                                })}
+                             </div>
+                        </div>
+                        {/* --- END NEW SECTION --- */}
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                             {SERVICE_FEATURES.map((feature, idx) => {
@@ -628,6 +683,13 @@ export default function BookingsCreate({ services }: Props) {
                                             <span className="text-gray-500">Lokasi: </span>
                                             <span className="font-bold text-[#0F172A] text-right max-w-[200px]">
                                                 {selectedLocation?.name || '-'}
+                                            </span>
+                                        </div>
+                                        {/* Added Vehicle Type to Summary */}
+                                        <div className="text-sm flex justify-between items-start">
+                                            <span className="text-gray-500">Kendaraan: </span>
+                                            <span className="font-bold text-[#0F172A] text-right">
+                                                {getVehicleLabel(data.vehicle_type)}
                                             </span>
                                         </div>
                                         <div className="text-sm flex justify-between items-start">
