@@ -245,12 +245,15 @@ export default function BookingsCreate({ services }: Props) {
             {/* --- NAVBAR --- */}
             <header className="fixed top-0 w-full z-50 bg-white border-b border-gray-100">
                 <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
-                    <Link href="/" className="text-2xl font-extrabold tracking-tight text-[#0F172A]">
+                    {/* LOGO: Arahkan ke /dashboard */}
+                    <Link href="/dashboard" className="text-2xl font-extrabold tracking-tight text-[#0F172A]">
                         Easy<span className="text-blue-600">Wash</span>
                     </Link>
 
                     <nav className="hidden md:flex gap-10 text-gray-500 font-medium">
-                        <Link href="/" className="hover:text-blue-600">Beranda</Link>
+                        {/* MENU BERANDA: Arahkan ke /dashboard */}
+                        <Link href="/dashboard" className="hover:text-blue-600">Beranda</Link>
+                        
                         <Link href="#" className="hover:text-blue-600">Lokasi</Link>
                     </nav>
 
