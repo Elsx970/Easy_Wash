@@ -74,12 +74,19 @@ class BookingController extends Controller
         $scheduledAt = Carbon::parse($validated['scheduled_at']);
         $estimatedFinishAt = $this->calculateEstimatedFinishTime($service, $scheduledAt);
 
+        // --- [LOGIKA BARU] GENERATE NOMOR ANTREAN (A01, A02, dst) ---
+        // Menghitung jumlah booking pada tanggal yang sama untuk membuat urutan
+        $countToday = Booking::whereDate('scheduled_at', $scheduledAt->toDateString())->count();
+        $queueNumber = 'A' . str_pad($countToday + 1, 2, '0', STR_PAD_LEFT); 
+        // -----------------------------------------------------------
+
         $booking = Booking::create([
             ...$validated,
             'user_id' => $request->user()->id,
             'status' => BookingStatus::Pending->value,
             'estimated_finish_at' => $estimatedFinishAt,
             'booking_code' => Booking::generateBookingCode(),
+            'queue_number' => $queueNumber, // Tambahkan ini (pastikan ada kolom queue_number di database)
         ]);
 
         return redirect()->route('bookings.show', $booking)
@@ -100,9 +107,72 @@ class BookingController extends Controller
 
         $booking->load(['service', 'user', 'location']);
 
+        // --- [LOGIKA BARU] DATA ANTREAN REALTIME UNTUK FRONTEND ---
+        
+        // 1. Cari antrean yang sedang diproses (InProgress) pada hari yang sama
+        $date = Carbon::parse($booking->scheduled_at)->toDateString();
+        
+        $currentServing = Booking::whereDate('scheduled_at', $date)
+            ->where('status', BookingStatus::InProgress->value)
+            ->orderBy('scheduled_at', 'asc')
+            ->first();
+
+        // Jika tidak ada yang in_progress, ambil pending terdepan
+        if (!$currentServing) {
+            $currentServing = Booking::whereDate('scheduled_at', $date)
+                ->where('status', BookingStatus::Pending->value)
+                ->orderBy('scheduled_at', 'asc')
+                ->first();
+        }
+
+        // 2. Hitung estimasi waktu tunggu (Berapa orang di depan user ini?)
+        $peopleAhead = Booking::whereDate('scheduled_at', $date)
+            ->where('status', BookingStatus::Pending->value)
+            ->where('scheduled_at', '<', $booking->scheduled_at)
+            ->count();
+        
+        // Asumsi waktu tunggu = jumlah orang di depan * durasi service user
+        $estWaitTime = $peopleAhead > 0 
+            ? ($peopleAhead * $booking->service->duration_minutes) . ' Menit' 
+            : 'Segera';
+
+        // 3. Ambil list antrean berikutnya (Upcoming)
+        $upcoming = Booking::whereDate('scheduled_at', $date)
+            ->where('status', BookingStatus::Pending->value)
+            ->where('id', '!=', $booking->id) // Jangan tampilkan diri sendiri
+            ->where('scheduled_at', '>', Carbon::now()->subHours(2)) // Filter yang relevan saja
+            ->orderBy('scheduled_at', 'asc')
+            ->limit(3)
+            ->get()
+            ->map(function($b) {
+                return [
+                    'time' => Carbon::parse($b->scheduled_at)->format('H:i'),
+                    'number' => $b->queue_number,
+                    'status' => 'Menunggu'
+                ];
+            });
+
+        // Susun data queue
+        $queueData = [
+            'current_serving' => [
+                'number' => $currentServing ? $currentServing->queue_number : '-',
+                'status' => $currentServing 
+                    ? ($currentServing->status === BookingStatus::InProgress->value ? 'Sedang Dicuci' : 'Memanggil') 
+                    : 'Belum Ada',
+            ],
+            'user_queue' => [
+                'number' => $booking->queue_number,
+                'status' => $booking->status === BookingStatus::Pending->value ? 'Menunggu' : 'Selesai',
+                'estimated_wait_time' => $booking->status === BookingStatus::Pending->value ? $estWaitTime : '-',
+            ],
+            'upcoming_list' => $upcoming
+        ];
+        // -----------------------------------------------------------
+
         return Inertia::render('Bookings/Show', [
             'booking' => $booking,
             'canUpdate' => $this->canUpdate($booking),
+            'queue' => $queueData, // Kirim data antrean ke Frontend
         ]);
     }
 
