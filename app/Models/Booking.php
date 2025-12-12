@@ -28,20 +28,18 @@ class Booking extends Model
         'status',
         'notes',
         'booking_code',
+        'queue_number',
     ];
 
     /**
-     * Get the attributes that should be cast.
+     * The attributes that should be cast.
      *
-     * @return array<string, string>
+     * @var array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'scheduled_at' => 'datetime',
-            'estimated_finish_at' => 'datetime',
-        ];
-    }
+    protected $casts = [
+        'scheduled_at' => 'datetime',
+        'estimated_finish_at' => 'datetime',
+    ];
 
     /**
      * Get the user that owns the booking.

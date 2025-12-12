@@ -1,35 +1,29 @@
-import AppLayout from '@/layouts/app-layout';
 import { type BreadcrumbItem } from '@/types';
-import { Head, Link, router } from '@inertiajs/react';
+import { Head, Link, router, usePage } from '@inertiajs/react';
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes';
 import bookings from '@/routes/bookings';
 import { 
-    Calendar, 
-    Car, 
     Clock, 
-    User, 
+    MapPin, 
+    Phone, 
     MoreHorizontal, 
     Trash2, 
-    Pencil, 
-    Eye 
+    Pencil,
+    User,
+    ChevronDown,
+    Facebook,
+    Twitter,
+    Instagram
 } from 'lucide-react';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
+    DropdownMenuLabel,
+    DropdownMenuSeparator
 } from "@/components/ui/dropdown-menu";
-
-const breadcrumbs: BreadcrumbItem[] = [
-    {
-        title: 'Dashboard',
-        href: dashboard().url,
-    },
-    {
-        title: 'Pemesanan',
-    },
-];
 
 interface Booking {
     id: number;
@@ -45,6 +39,7 @@ interface Booking {
     user?: {
         id: number;
         name: string;
+        email: string;
     };
 }
 
@@ -59,177 +54,260 @@ interface Props {
         data: Booking[];
         links: PaginationLink[];
     };
-    filters?: {
-        search?: string;
-        status?: string;
-    };
     isAdmin: boolean;
+    auth: {
+        user: {
+            name: string;
+            email: string;
+        }
+    }
 }
 
-export default function BookingsIndex({ bookings: bookingsData, isAdmin }: Props) {
+export default function BookingsIndex({ bookings: bookingsData, isAdmin, auth }: Props) {
     
-    // Helper untuk warna status (Logika dipertahankan)
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case 'pending':
-                return 'bg-yellow-50 text-yellow-700 border-yellow-200';
-            case 'in_progress':
-                return 'bg-blue-50 text-blue-700 border-blue-200';
-            case 'completed':
-                return 'bg-green-50 text-green-700 border-green-200';
-            case 'cancelled':
-                return 'bg-red-50 text-red-700 border-red-200';
-            default:
-                return 'bg-gray-50 text-gray-700 border-gray-200';
-        }
+    const formatDate = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
     };
 
-    // Helper untuk label status
+    const formatTime = (dateString: string) => {
+        const date = new Date(dateString);
+        return date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }).replace('.', ':');
+    };
+
     const getStatusLabel = (status: string) => {
         switch (status) {
             case 'pending': return 'Menunggu';
-            case 'in_progress': return 'Sedang Diproses';
+            case 'in_progress': return 'Proses';
             case 'completed': return 'Selesai';
-            case 'cancelled': return 'Dibatalkan';
+            case 'cancelled': return 'Batal';
             default: return status;
         }
     };
 
     const handleDelete = (bookingId: number, vehiclePlate: string) => {
-        if (confirm(`Apakah Anda yakin ingin menghapus pemesanan ${vehiclePlate}?`)) {
+        if (confirm(`Hapus pemesanan ${vehiclePlate}?`)) {
             router.delete(bookings.destroy(bookingId).url);
         }
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <div className="flex flex-col min-h-screen bg-[#F8F9FB] font-sans">
             <Head title="Riwayat Pemesanan" />
-            
-            <div className="flex h-full flex-1 flex-col gap-6 overflow-x-hidden p-4 md:p-6 bg-gray-50/50 dark:bg-transparent">
-                
-                {/* Header Section */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-3xl font-bold tracking-tight text-gray-900 dark:text-gray-100">Riwayat Pemesanan</h1>
-                        <p className="text-muted-foreground text-sm mt-1">
-                            Kelola semua jadwal cuci kendaraan Anda di sini.
-                        </p>
+
+            {/* --- NAVBAR SECTION --- */}
+            <nav className="w-full bg-white h-20 border-b border-gray-100 sticky top-0 z-50">
+                <div className="max-w-7xl mx-auto px-6 h-full flex items-center justify-between">
+                    
+                    {/* Logo: Easy Hitam + Wash Biru */}
+                    <Link href="/" className="text-2xl font-extrabold tracking-tight">
+                        <span className="text-[#0F172A]">Easy</span>
+                        <span className="text-blue-600">Wash</span>
+                    </Link>
+
+                    {/* Menu Links */}
+                    <div className="hidden md:flex items-center gap-8">
+                        <Link 
+                            href={dashboard().url} 
+                            className="text-[15px] font-medium text-slate-500 hover:text-blue-600 transition-colors"
+                        >
+                            Beranda
+                        </Link>
+                        <Link 
+                            href="#" 
+                            className="text-[15px] font-bold text-blue-600 transition-colors"
+                        >
+                            Riwayat Pesanan
+                        </Link>
                     </div>
+
+                    {/* User Profile */}
+                    <div className="flex items-center gap-4">
+                        {auth?.user ? (
+                            <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                    <button className="flex items-center gap-3 focus:outline-none group">
+                                        
+                                        {/* Name Text (Kiri) */}
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-sm font-semibold text-slate-700 group-hover:text-blue-600 transition-colors">
+                                                {auth.user.name}
+                                            </span>
+                                        </div>
+
+                                        {/* Avatar Circle (Kanan) */}
+                                        <div className="h-10 w-10 rounded-full bg-slate-100 flex items-center justify-center border border-slate-200 group-hover:border-blue-200 transition-colors">
+                                            <User className="h-5 w-5 text-slate-600 group-hover:text-blue-600" />
+                                        </div>
+                                        
+                                        {/* Chevron Icon */}
+                                        <ChevronDown className="w-4 h-4 text-slate-400" />
+                                    </button>
+                                </DropdownMenuTrigger>
+                                
+                                {/* Dropdown Content (Hanya Info User, Tanpa Logout) */}
+                                <DropdownMenuContent className="w-56" align="end" forceMount>
+                                    <DropdownMenuLabel className="font-normal">
+                                        <div className="flex flex-col space-y-1">
+                                            <p className="text-sm font-medium leading-none">{auth.user.name}</p>
+                                            <p className="text-xs leading-none text-muted-foreground">{auth.user.email}</p>
+                                        </div>
+                                    </DropdownMenuLabel>
+                                </DropdownMenuContent>
+                            </DropdownMenu>
+                        ) : (
+                             <Button className="bg-transparent border border-slate-900 text-slate-900 hover:bg-slate-50">
+                                Reservasi
+                            </Button>
+                        )}
+                    </div>
+                </div>
+            </nav>
+
+            {/* --- MAIN CONTENT --- */}
+            <main className="flex-1 w-full max-w-7xl mx-auto px-6 py-12">
+                
+                {/* Page Title */}
+                <div className="flex justify-between items-end mb-8">
+                    <div>
+                        <h1 className="text-3xl font-bold text-slate-900">Riwayat Pemesanan</h1>
+                        <p className="text-slate-500 mt-2">Kelola jadwal dan status pencucian kendaraan Anda.</p>
+                    </div>
+                    
                     <Link href={bookings.create().url}>
-                        <Button className="w-full md:w-auto shadow-md hover:shadow-lg transition-all">
-                            + Buat Pemesanan Baru
+                         <Button className="bg-blue-600 hover:bg-blue-700 text-white rounded-lg px-6 h-11 shadow-lg shadow-blue-600/20">
+                            + Buat Pesanan Baru
                         </Button>
                     </Link>
                 </div>
 
-                {/* Content Section: List Card Style */}
-                <div className="space-y-4">
+                {/* Booking List */}
+                <div className="space-y-6">
                     {bookingsData.data.length === 0 ? (
-                        <div className="rounded-xl border border-dashed border-gray-300 p-12 text-center bg-white dark:bg-sidebar-accent">
+                        <div className="bg-white rounded-2xl border border-dashed border-slate-300 p-16 text-center">
                             <div className="flex justify-center mb-4">
-                                <Car className="h-12 w-12 text-gray-300" />
+                                <Clock className="h-12 w-12 text-slate-300" />
                             </div>
-                            <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100">Belum ada pemesanan</h3>
-                            <p className="text-muted-foreground mt-1 text-sm">Mulai dengan membuat jadwal cuci kendaraan baru.</p>
+                            <h3 className="text-lg font-medium text-slate-900">Belum ada riwayat</h3>
+                            <p className="text-slate-500 mt-1">Anda belum melakukan pemesanan cuci kendaraan.</p>
                         </div>
                     ) : (
                         bookingsData.data.map((booking) => (
                             <div 
                                 key={booking.id} 
-                                className="group bg-white dark:bg-sidebar-accent border border-gray-100 dark:border-sidebar-border rounded-xl p-6 shadow-sm hover:shadow-md transition-all duration-200 flex flex-col md:flex-row gap-6 items-start md:items-center justify-between"
+                                className="bg-white rounded-2xl shadow-sm border border-slate-100 p-8 hover:shadow-md transition-shadow duration-200"
                             >
-                                {/* Kiri: Info Utama (Layanan & Kendaraan) */}
-                                <div className="flex-1 min-w-0">
-                                    <div className="flex items-center gap-3 mb-2">
-                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white truncate">
+                                {/* Card Header */}
+                                <div className="flex justify-between items-start mb-6">
+                                    <div className="flex items-center gap-3">
+                                        <div className="h-10 w-1 bg-blue-600 rounded-full"></div>
+                                        <h3 className="text-xl font-bold text-slate-900">
                                             {booking.service.name}
                                         </h3>
-                                        <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusColor(booking.status)}`}>
-                                            {getStatusLabel(booking.status)}
-                                        </span>
                                     </div>
-                                    
-                                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 text-sm text-gray-500 dark:text-gray-400">
-                                        <div className="flex items-center gap-1.5">
-                                            <span className="font-mono text-xs font-bold bg-gray-100 dark:bg-gray-800 px-2 py-0.5 rounded text-gray-600 dark:text-gray-300">
-                                                #{booking.id}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-1.5">
-                                            <Car className="w-4 h-4" />
-                                            <span className="capitalize">{booking.vehicle_type}</span>
-                                            <span className="font-semibold text-gray-700 dark:text-gray-300">({booking.vehicle_plate})</span>
-                                        </div>
-                                        {isAdmin && booking.user && (
-                                            <div className="flex items-center gap-1.5 text-blue-600 dark:text-blue-400">
-                                                <User className="w-4 h-4" />
-                                                <span>{booking.user.name}</span>
-                                            </div>
-                                        )}
-                                    </div>
-                                </div>
 
-                                {/* Tengah: Jadwal */}
-                                <div className="flex flex-col md:items-end gap-1 min-w-[180px]">
-                                    <div className="flex items-center gap-2 text-gray-700 dark:text-gray-200 font-medium">
-                                        <Calendar className="w-4 h-4 text-blue-500" />
-                                        <span>
-                                            {new Date(booking.scheduled_at).toLocaleDateString('id-ID', {
-                                                day: 'numeric', month: 'long', year: 'numeric'
-                                            })}
-                                        </span>
-                                    </div>
-                                    <div className="flex items-center gap-2 text-sm text-gray-500">
-                                        <Clock className="w-4 h-4" />
-                                        <span>
-                                            {new Date(booking.scheduled_at).toLocaleTimeString('id-ID', {
-                                                hour: '2-digit', minute: '2-digit'
-                                            })} WIB
-                                        </span>
-                                    </div>
-                                </div>
-
-                                {/* Kanan: Aksi (Buttons) */}
-                                <div className="flex items-center gap-2 w-full md:w-auto justify-end border-t md:border-t-0 pt-4 md:pt-0 mt-2 md:mt-0">
-                                    <Link href={bookings.show(booking.id).url}>
-                                        <Button variant="outline" size="sm" className="h-9 px-4 border-blue-200 text-blue-600 hover:bg-blue-50 hover:text-blue-700 dark:border-blue-900 dark:text-blue-400">
-                                            Lihat
-                                        </Button>
-                                    </Link>
-
-                                    {/* Menu Dropdown untuk Admin agar rapi, atau tombol langsung jika preferensi */}
                                     {isAdmin && (
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="h-9 w-9">
+                                                <Button variant="ghost" size="icon" className="h-8 w-8 text-slate-400">
                                                     <MoreHorizontal className="w-4 h-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <Link href={bookings.edit(booking.id).url}>
-                                                    <DropdownMenuItem className="cursor-pointer text-green-600 focus:text-green-700">
-                                                        <Pencil className="w-4 h-4 mr-2" />
-                                                        Edit
-                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem><Pencil className="w-4 h-4 mr-2" /> Edit</DropdownMenuItem>
                                                 </Link>
-                                                <DropdownMenuItem 
-                                                    className="cursor-pointer text-red-600 focus:text-red-700 focus:bg-red-50"
-                                                    onClick={() => handleDelete(booking.id, booking.vehicle_plate)}
-                                                >
-                                                    <Trash2 className="w-4 h-4 mr-2" />
-                                                    Hapus
+                                                <DropdownMenuItem onClick={() => handleDelete(booking.id, booking.vehicle_plate)} className="text-red-600">
+                                                    <Trash2 className="w-4 h-4 mr-2" /> Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
                                     )}
                                 </div>
+
+                                {/* Card Body (Grid Layout) */}
+                                <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-center">
+                                    
+                                    {/* Info 1: Kendaraan */}
+                                    <div className="md:col-span-4 flex gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                            <MapPin className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-0.5">Kendaraan</p>
+                                            <p className="font-semibold text-slate-900">{booking.vehicle_plate}</p>
+                                            <p className="text-xs text-slate-400 capitalize">{booking.vehicle_type}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Info 2: Status */}
+                                    <div className="md:col-span-3 flex gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                            <Phone className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-0.5">Status</p>
+                                            <span className={`inline-flex items-center px-2 py-0.5 rounded text-xs font-medium capitalize
+                                                ${booking.status === 'completed' ? 'bg-green-100 text-green-800' : 
+                                                  booking.status === 'cancelled' ? 'bg-red-100 text-red-800' : 
+                                                  'bg-yellow-100 text-yellow-800'}`}>
+                                                {getStatusLabel(booking.status)}
+                                            </span>
+                                            <p className="text-xs text-slate-400 mt-0.5">ID: #{booking.id}</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Info 3: Waktu */}
+                                    <div className="md:col-span-3 flex gap-4">
+                                        <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center shrink-0">
+                                            <Clock className="w-5 h-5 text-blue-600" />
+                                        </div>
+                                        <div>
+                                            <p className="text-sm text-slate-500 mb-0.5">Jadwal</p>
+                                            <p className="font-semibold text-slate-900">{formatDate(booking.scheduled_at)}</p>
+                                            <p className="text-xs text-slate-400">{formatTime(booking.scheduled_at)} WIB</p>
+                                        </div>
+                                    </div>
+
+                                    {/* Action Button */}
+                                    <div className="md:col-span-2 flex justify-end">
+                                        <Link href={bookings.show(booking.id).url} className="w-full md:w-auto">
+                                            <Button variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
+                                                Lihat
+                                            </Button>
+                                        </Link>
+                                    </div>
+
+                                </div>
                             </div>
                         ))
                     )}
                 </div>
+            </main>
 
-                {/* Pagination (Jika ada) - Bisa ditambahkan di sini sesuai props links */}
-            </div>
-        </AppLayout>
+            {/* --- FOOTER SECTION --- */}
+            <footer className="bg-[#0F1E2E] text-white pt-16 pb-8">
+                <div className="max-w-7xl mx-auto px-6">
+                    <div className="flex flex-col items-center justify-center text-center">
+                        <h2 className="text-2xl font-bold mb-4">EasyWash</h2>
+                        <p className="text-slate-400 text-sm max-w-md mb-8">
+                            Copyright © 2025, Universe.<br/>
+                            Bandar Lampung, Bandar Lampung,<br/>
+                            Indonesia.
+                        </p>
+                        <p className="text-slate-400 text-sm mb-8">
+                            +62 895-6179-69599 (CS)
+                        </p>
+                        
+                        {/* Social Icons */}
+                        <div className="flex gap-6 mb-8">
+                            <a href="#" className="text-white hover:text-blue-400 transition-colors"><Facebook className="w-5 h-5"/></a>
+                            <a href="#" className="text-white hover:text-blue-400 transition-colors"><Twitter className="w-5 h-5"/></a>
+                            <a href="#" className="text-white hover:text-blue-400 transition-colors"><Instagram className="w-5 h-5"/></a>
+                        </div>
+                    </div>
+                </div>
+            </footer>
+        </div>
     );
 }

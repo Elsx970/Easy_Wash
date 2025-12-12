@@ -34,45 +34,21 @@ interface Service {
 }
 
 interface Location {
-    id: string;
+    id: number | string;
     name: string;
-    description: string;
-    address: string;
-    phone: string;
-    hours: string;
+    description?: string;
+    address?: string;
+    phone?: string;
+    hours?: string;
 }
 
 interface Props {
     services: Service[];
+    locations?: Location[];
 }
 
-// --- DATA MOCKUP LOKASI ---
-const LOCATIONS: Location[] = [
-    {
-        id: 'kedaton',
-        name: 'Kedaton',
-        address: 'Jl. Melati Indah No. 27, Kedaton, Kota Bandar Lampung, Lampung 3514',
-        phone: '+62 813-1548-8727',
-        hours: '08.00 - 17.00',
-        description: ''
-    },
-    {
-        id: 'wayhalim',
-        name: 'Way Halim',
-        address: 'Jl. Pangeran Antasari No. 88, Way Halim Permai, Kota Bandar Lampung, Lampung 35133',
-        phone: '+62 882-3230-8327',
-        hours: '08.00 - 17.00',
-        description: ''
-    },
-    {
-        id: 'antasari',
-        name: 'Antasari',
-        address: 'Jl. Sultan Agung No. 105, Tanjung Agung Raya, Kota Bandar Lampung, Lampung 35112',
-        phone: '+62 812-2553-3722',
-        hours: '08.00 - 17.00',
-        description: ''
-    }
-];
+// Backend will provide locations; keep empty fallback
+const LOCATIONS: Location[] = [];
 
 // --- DATA MOCKUP WAKTU ---
 const TIME_SLOTS = [
@@ -139,17 +115,24 @@ const SERVICE_FEATURES = [
 ];
 
 // --- DATA PILIHAN KENDARAAN (BARU) ---
+// Vehicle options include semantic type and optional size to satisfy backend validation
 const VEHICLE_OPTIONS = [
-    { id: 'mobil_m', label: 'M', name: 'Mobil (M)', icon: Car },
-    { id: 'mobil_l', label: 'L', name: 'Mobil (L)', icon: Truck }, // Menggunakan Truck sebagai representasi SUV/Besar
-    { id: 'motor', label: '', name: 'Motor', icon: Bike },
+    { id: 'mobil_m', type: 'mobil', size: 'M', label: 'M', name: 'Mobil (M)', icon: Car },
+    { id: 'mobil_l', type: 'mobil', size: 'L', label: 'L', name: 'Mobil (L)', icon: Truck },
+    { id: 'motor', type: 'motor', size: null, label: '', name: 'Motor', icon: Bike },
 ];
 
-export default function BookingsCreate({ services }: Props) {
-    const { auth } = usePage<SharedData>().props;
+export default function BookingsCreate({ services, locations = [] }: Props) {
+    const pageProps = usePage<SharedData>().props as any;
+    const auth = pageProps.auth;
+    const flash = pageProps.flash as Record<string, any> | undefined;
     const userName = auth?.user?.name || 'Pelanggan';
 
     const [step, setStep] = useState<number>(1);
+
+    // Debug: Log locations received
+    console.log('Locations passed to component:', locations);
+    console.log('Locations length:', locations.length);
 
     // --- LOGIKA TANGGAL REALTIME ---
     const today = new Date();
@@ -158,10 +141,29 @@ export default function BookingsCreate({ services }: Props) {
     const currentMonthYear = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(today);
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
 
-    const { data, setData, post, processing, errors, transform } = useForm({
+    interface BookingFormData {
+        location_id: string;
+        service_id: string;
+        vehicle_type: string;
+        vehicle_size: string;
+        vehicle_plate: string;
+        date: string;
+        time: string;
+        scheduled_at: string;
+        email: string;
+        phone: string;
+        name: string;
+        address: string;
+        zip_code: string;
+        city: string;
+        notes: string;
+    }
+
+    const { data, setData, post, processing, errors, transform } = useForm<BookingFormData>({
         location_id: '',
         service_id: '',
-        vehicle_type: 'mobil_m', // Default vehicle type
+        vehicle_type: 'mobil', // backend expects 'mobil' | 'motor' | 'salon'
+        vehicle_size: 'M',
         vehicle_plate: '',
         date: '',
         time: '',
@@ -210,11 +212,11 @@ export default function BookingsCreate({ services }: Props) {
     };
 
     const selectedService = services.find(s => s.id.toString() === data.service_id);
-    const selectedLocation = LOCATIONS.find(l => l.id === data.location_id);
+    const selectedLocation = (locations.length ? locations : LOCATIONS).find(l => String(l.id) === String(data.location_id));
 
     // Helper untuk menampilkan nama kendaraan yang dipilih
-    const getVehicleLabel = (id: string) => {
-        const v = VEHICLE_OPTIONS.find(opt => opt.id === id);
+    const getVehicleLabel = (type: string, size?: string | null) => {
+        const v = VEHICLE_OPTIONS.find(opt => opt.type === type && String(opt.size) === String(size));
         return v ? v.name : 'Kendaraan';
     };
 
@@ -241,6 +243,38 @@ export default function BookingsCreate({ services }: Props) {
             
             {/* Inject CSS untuk hide scrollbar */}
             <style>{hideScrollbarStyle}</style>
+
+            {/* Flash / Validation Errors */}
+            {(flash?.error || flash?.success || Object.keys(errors).length > 0) && (
+                <div className="max-w-7xl mx-auto px-6 mt-6">
+                    <div className="space-y-2">
+                        {flash?.error && (
+                            <div className="rounded-md bg-red-50 border border-red-200 p-4 text-red-700">
+                                <strong className="font-semibold">Error:</strong>
+                                <div className="mt-1">{flash.error}</div>
+                            </div>
+                        )}
+
+                        {flash?.success && (
+                            <div className="rounded-md bg-green-50 border border-green-200 p-4 text-green-700">
+                                <strong className="font-semibold">Sukses:</strong>
+                                <div className="mt-1">{flash.success}</div>
+                            </div>
+                        )}
+
+                        {Object.keys(errors).length > 0 && (
+                            <div className="rounded-md bg-yellow-50 border border-yellow-200 p-4 text-yellow-800">
+                                <strong className="font-semibold">Periksa form:</strong>
+                                <ul className="mt-2 list-disc list-inside text-sm">
+                                    {Object.entries(errors).map(([k, v]) => (
+                                        <li key={k}>{Array.isArray(v) ? v.join(', ') : String(v)}</li>
+                                    ))}
+                                </ul>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
 
             {/* --- NAVBAR --- */}
             <header className="fixed top-0 w-full z-50 bg-white border-b border-gray-100">
@@ -328,12 +362,12 @@ export default function BookingsCreate({ services }: Props) {
                         </h2>
 
                         <div className="space-y-6">
-                            {LOCATIONS.map((loc) => {
-                                const isSelected = data.location_id === loc.id;
+                            {(locations.length ? locations : LOCATIONS).map((loc) => {
+                                const isSelected = String(data.location_id) === String(loc.id);
                                 return (
                                     <div
                                         key={loc.id}
-                                        onClick={() => setData('location_id', loc.id)}
+                                        onClick={() => setData('location_id', String(loc.id))}
                                         className={`bg-white p-8 rounded-xl shadow-lg flex flex-col md:flex-row items-center justify-between gap-8 transition-all duration-300 cursor-pointer border hover:-translate-y-1 hover:shadow-xl ${isSelected ? 'border-blue-600 ring-2 ring-blue-100' : 'border-gray-100'
                                             }`}
                                     >
@@ -359,10 +393,10 @@ export default function BookingsCreate({ services }: Props) {
                                                 </div>
                                             </div>
                                         </div>
-                                        <Button
+                                            <Button
                                             onClick={(e) => {
                                                 e.stopPropagation();
-                                                setData('location_id', loc.id);
+                                                setData('location_id', String(loc.id));
                                                 nextStep();
                                             }}
                                             className={`px-10 py-6 rounded-lg text-sm font-bold transition-all duration-300 border ${isSelected
@@ -392,12 +426,16 @@ export default function BookingsCreate({ services }: Props) {
                              
                              <div className="flex justify-center gap-6 md:gap-12">
                                 {VEHICLE_OPTIONS.map((v) => {
-                                    const isSelected = data.vehicle_type === v.id;
+                                    const isSelected = data.vehicle_type === v.type && String(data.vehicle_size) === String(v.size);
                                     return (
-                                        <div 
+                                        <button
                                             key={v.id}
-                                            onClick={() => setData('vehicle_type', v.id)}
-                                            className="flex flex-col items-center gap-3 cursor-pointer group"
+                                            type="button"
+                                            onClick={() => {
+                                                setData('vehicle_type', v.type);
+                                                setData('vehicle_size', v.size ?? '');
+                                            }}
+                                            className={`flex flex-col items-center gap-3 cursor-pointer group p-2 rounded ${isSelected ? 'ring-2 ring-blue-100' : ''}`}
                                         >
                                             <div className={`w-20 h-20 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
                                                 isSelected 
@@ -407,20 +445,18 @@ export default function BookingsCreate({ services }: Props) {
                                                 <v.icon className="w-8 h-8" strokeWidth={1.5} />
                                             </div>
                                             <div className="flex flex-col items-center">
-                                                {/* Label Besar (M / L) jika ada */}
                                                 {v.label && (
                                                     <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
                                                         {v.label}
                                                     </span>
                                                 )}
-                                                {/* Nama Kendaraan untuk tooltip/subtitle jika motor */}
                                                 {!v.label && (
                                                      <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
                                                         Motor
                                                     </span>
                                                 )}
                                             </div>
-                                        </div>
+                                        </button>
                                     )
                                 })}
                              </div>
@@ -692,7 +728,7 @@ export default function BookingsCreate({ services }: Props) {
                                         <div className="text-sm flex justify-between items-start">
                                             <span className="text-gray-500">Kendaraan: </span>
                                             <span className="font-bold text-[#0F172A] text-right">
-                                                {getVehicleLabel(data.vehicle_type)}
+                                                {getVehicleLabel(data.vehicle_type, data.vehicle_size)}
                                             </span>
                                         </div>
                                         <div className="text-sm flex justify-between items-start">

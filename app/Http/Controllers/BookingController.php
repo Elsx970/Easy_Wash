@@ -7,6 +7,7 @@ use App\Http\Requests\StoreBookingRequest;
 use App\Http\Requests\UpdateBookingRequest;
 use App\Models\Booking;
 use App\Models\Service;
+use App\Models\Location;
 use Carbon\Carbon;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -56,9 +57,11 @@ class BookingController extends Controller
     public function create(): Response
     {
         $services = Service::all();
+        $locations = Location::where('is_active', true)->get();
 
         return Inertia::render('Bookings/Create', [
             'services' => $services,
+            'locations' => $locations,
         ]);
     }
 
