@@ -27,6 +27,7 @@ interface QueueData {
 interface Booking {
     id: number;
     vehicle_type: string;
+    vehicle_size?: string;
     vehicle_plate: string;
     scheduled_at: string;
     estimated_finish_at: string | null;
@@ -111,8 +112,11 @@ export default function BookingsShow({ booking, queue }: Props) {
                             </div>
                         </div>
                         <div>
-                            <h3 className="text-sm font-medium text-gray-500">Tipe</h3>
-                            <p className="font-medium capitalize">{booking.vehicle_type}</p>
+                            <h3 className="text-sm font-medium text-gray-500">Tipe Kendaraan</h3>
+                            <p className="font-medium capitalize mt-1">
+                                {booking.vehicle_type}
+                                {booking.vehicle_size && booking.vehicle_size !== 'M' && booking.vehicle_size !== 'L' ? '' : booking.vehicle_size ? ` (${booking.vehicle_size})` : ''}
+                            </p>
                         </div>
                         {booking.notes && (
                             <div className="sm:col-span-2">
@@ -127,27 +131,46 @@ export default function BookingsShow({ booking, queue }: Props) {
             {/* Kolom Kanan: Pelanggan */}
             <div className="space-y-6">
                 <div className="rounded-xl border bg-white p-6 shadow-sm">
-                    <h2 className="text-lg font-bold mb-4 border-b pb-2">Pelanggan</h2>
-                    <div className="space-y-4">
+                    <h2 className="text-lg font-bold mb-4 border-b pb-2">Data Pelanggan</h2>
+                    <div className="space-y-5">
                         <div className="flex gap-3">
-                            <UserIcon className="w-5 h-5 text-gray-400" />
-                            <div><p className="text-sm text-gray-500">Nama</p><p className="font-medium">{booking.customer_name}</p></div>
+                            <UserIcon className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-500">Nama</p>
+                                <p className="font-bold text-gray-900 break-words">{booking.customer_name}</p>
+                            </div>
                         </div>
                         <div className="flex gap-3">
-                            <Phone className="w-5 h-5 text-gray-400" />
-                            <div><p className="text-sm text-gray-500">Telepon</p><p className="font-medium">{booking.customer_phone}</p></div>
+                            <Phone className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-500">Telepon</p>
+                                <p className="font-bold text-gray-900">{booking.customer_phone}</p>
+                            </div>
                         </div>
                         <div className="flex gap-3">
-                            <Mail className="w-5 h-5 text-gray-400" />
-                            <div><p className="text-sm text-gray-500">Email</p><p className="font-medium break-all text-sm">{booking.customer_email}</p></div>
+                            <Mail className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                            <div className="flex-1 min-w-0">
+                                <p className="text-sm text-gray-500">Email</p>
+                                <p className="font-bold text-gray-900 break-all text-sm">{booking.customer_email}</p>
+                            </div>
                         </div>
+                        {booking.customer_address && (
+                            <div className="flex gap-3">
+                                <MapPin className="w-5 h-5 text-gray-400 flex-shrink-0 mt-0.5" />
+                                <div className="flex-1 min-w-0">
+                                    <p className="text-sm text-gray-500">Alamat</p>
+                                    <p className="font-bold text-gray-900 break-words">{booking.customer_address}</p>
+                                </div>
+                            </div>
+                        )}
                         {booking.location && (
                             <div className="mt-4 pt-4 border-t">
                                 <div className="flex gap-3">
-                                    <MapPin className="w-5 h-5 text-blue-500" />
-                                    <div>
+                                    <MapPin className="w-5 h-5 text-blue-500 flex-shrink-0 mt-0.5" />
+                                    <div className="flex-1">
                                         <p className="text-sm text-gray-500">Lokasi Cabang</p>
                                         <p className="font-bold text-gray-800">{booking.location.name}</p>
+                                        <p className="text-xs text-gray-600 mt-1">{booking.location.address}</p>
                                     </div>
                                 </div>
                             </div>

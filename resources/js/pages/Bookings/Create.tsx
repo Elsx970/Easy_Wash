@@ -13,14 +13,34 @@ import { Label } from '@/components/ui/label';
 import InputError from '@/components/input-error';
 import { type SharedData } from '@/types';
 
-// --- CSS UNTUK HIDE SCROLLBAR ---
+// --- CSS UNTUK HIDE SCROLLBAR & AUTOFILL FIX ---
 const hideScrollbarStyle = `
   .no-scrollbar::-webkit-scrollbar {
       display: none;
   }
   .no-scrollbar {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;  /* Firefox */
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+  }
+  
+  /* Override browser autofill styling - AGGRESSIVE */
+  input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: #1b1b18 !important;
+    transition: background-color 5000s ease-in-out 0s;
+    background-color: white !important;
+  }
+  
+  input:-webkit-autofill:hover {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: #1b1b18 !important;
+    background-color: white !important;
+  }
+  
+  input:-webkit-autofill:focus {
+    -webkit-box-shadow: 0 0 0 1000px white inset !important;
+    -webkit-text-fill-color: #1b1b18 !important;
+    background-color: white !important;
   }
 `;
 
@@ -216,12 +236,48 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
 
     // Helper untuk menampilkan nama kendaraan yang dipilih
     const getVehicleLabel = (type: string, size?: string | null) => {
-        const v = VEHICLE_OPTIONS.find(opt => opt.type === type && String(opt.size) === String(size));
+        const normalizedSize = size || null;
+        const v = VEHICLE_OPTIONS.find(opt => 
+            opt.type === type && (opt.size === normalizedSize || (opt.size === null && !normalizedSize))
+        );
         return v ? v.name : 'Kendaraan';
     };
 
+    // Helper function to check if time has passed
+    const isTimePassed = (timeStr: string, selectedDate: string) => {
+        if (!selectedDate) return false;
+        
+        const selectedDateObj = new Date(selectedDate);
+        const isToday = selectedDateObj.toDateString() === today.toDateString();
+        
+        if (!isToday) return false;
+        
+        // Convert time string (e.g., "09.00") to hours and minutes
+        const [hours, minutes] = timeStr.split('.').map(Number);
+        const timeInMinutes = hours * 60 + minutes;
+        const currentTime = today.getHours() * 60 + today.getMinutes();
+        
+        return timeInMinutes <= currentTime;
+    };
+
     const getServiceIdByKey = (key: string) => {
-        const found = services.find(s => s.name.toLowerCase().includes(key) || (key === 'kilat' && s.name.toLowerCase().includes('express')));
+        // Map package keys to service names
+        let searchTerms: string[] = [];
+        
+        if (key === 'standar') {
+            searchTerms = ['standar'];
+        } else if (key === 'deluxe') {
+            searchTerms = ['premium'];
+        } else if (key === 'kilat') {
+            searchTerms = ['express'];
+        }
+        
+        const found = services.find(s => {
+            const lowerName = s.name.toLowerCase();
+            return searchTerms.some(term => lowerName.includes(term));
+        });
+        
+        console.log(`getServiceIdByKey(${key}):`, { searchTerms, found: found?.name, id: found?.id });
         return found ? found.id.toString() : '';
     };
 
@@ -422,11 +478,14 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                         
                         {/* --- NEW SECTION: PILIH TIPE KENDARAAN --- */}
                         <div className="bg-white rounded-xl shadow-lg p-8 mb-10 max-w-3xl mx-auto border border-gray-100">
-                             <h3 className="text-xl font-bold text-[#0F172A] text-center mb-8">Pilih Ukuran Kendaraan Kamu</h3>
+                             <h3 className="text-xl font-bold text-[#0F172A] text-center mb-2">Pilih Ukuran Kendaraan Kamu</h3>
+                             <p className="text-center text-gray-600 text-sm mb-8">Pilih jenis kendaraan yang akan dicuci</p>
                              
                              <div className="flex justify-center gap-6 md:gap-12">
                                 {VEHICLE_OPTIONS.map((v) => {
-                                    const isSelected = data.vehicle_type === v.type && String(data.vehicle_size) === String(v.size);
+                                    const normalizedDataSize = data.vehicle_size || null;
+                                    const isSelected = data.vehicle_type === v.type && 
+                                        (v.size === normalizedDataSize || (v.size === null && !data.vehicle_size));
                                     return (
                                         <button
                                             key={v.id}
@@ -435,27 +494,39 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                                                 setData('vehicle_type', v.type);
                                                 setData('vehicle_size', v.size ?? '');
                                             }}
-                                            className={`flex flex-col items-center gap-3 cursor-pointer group p-2 rounded ${isSelected ? 'ring-2 ring-blue-100' : ''}`}
-                                        >
-                                            <div className={`w-20 h-20 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                            className={`flex flex-col items-center gap-4 cursor-pointer group p-6 rounded-xl transition-all duration-300 border-2 ${
                                                 isSelected 
-                                                    ? 'bg-gray-200 border-gray-300 text-[#1b1b18]' 
-                                                    : 'bg-gray-50 border-gray-200 text-gray-400 group-hover:border-blue-300'
+                                                    ? 'border-blue-600 bg-blue-50 scale-105 shadow-lg' 
+                                                    : 'border-gray-200 bg-white hover:border-blue-400 hover:shadow-md'
+                                            }`}
+                                        >
+                                            <div className={`w-24 h-24 rounded-full flex items-center justify-center border-2 transition-all duration-300 ${
+                                                isSelected 
+                                                    ? 'bg-blue-600 border-blue-600 text-white shadow-lg' 
+                                                    : 'bg-gray-100 border-gray-300 text-gray-600 group-hover:border-blue-400'
                                             }`}>
-                                                <v.icon className="w-8 h-8" strokeWidth={1.5} />
+                                                <v.icon className="w-10 h-10" strokeWidth={1.5} />
                                             </div>
                                             <div className="flex flex-col items-center">
                                                 {v.label && (
-                                                    <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
+                                                    <span className={`text-lg font-bold ${isSelected ? 'text-blue-600' : 'text-gray-700'}`}>
                                                         {v.label}
                                                     </span>
                                                 )}
                                                 {!v.label && (
-                                                     <span className={`text-sm font-bold ${isSelected ? 'text-[#0F172A]' : 'text-gray-400'}`}>
+                                                     <span className={`text-lg font-bold ${isSelected ? 'text-blue-600' : 'text-gray-700'}`}>
                                                         Motor
                                                     </span>
                                                 )}
+                                                <span className={`text-xs font-medium ${isSelected ? 'text-blue-500' : 'text-gray-500'} mt-1`}>
+                                                    {v.name}
+                                                </span>
                                             </div>
+                                            {isSelected && (
+                                                <div className="absolute top-2 right-2 bg-blue-600 text-white rounded-full p-1">
+                                                    <Check className="w-4 h-4" strokeWidth={3} />
+                                                </div>
+                                            )}
                                         </button>
                                     )
                                 })}
@@ -579,14 +650,18 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                                 <div className="flex-1 p-4 flex flex-col gap-2 items-center overflow-y-auto max-h-[300px] no-scrollbar">
                                     {TIME_SLOTS.map((time) => {
                                         const isSelected = data.time === time;
+                                        const timePassed = isTimePassed(time, data.date);
                                         return (
                                             <button
                                                 key={time}
                                                 type="button"
-                                                onClick={() => setData('time', time)}
+                                                disabled={timePassed}
+                                                onClick={() => !timePassed && setData('time', time)}
                                                 className={`w-full py-2 rounded text-sm font-medium transition-all ${isSelected
                                                         ? 'bg-blue-600 text-white shadow-md'
-                                                        : 'text-gray-600 hover:bg-gray-100'
+                                                        : timePassed
+                                                            ? 'text-gray-300 cursor-not-allowed bg-gray-50'
+                                                            : 'text-gray-600 hover:bg-gray-100'
                                                     }`}
                                             >
                                                 {time}
@@ -732,6 +807,12 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                                             </span>
                                         </div>
                                         <div className="text-sm flex justify-between items-start">
+                                            <span className="text-gray-500">Plat Nomor: </span>
+                                            <span className="font-bold text-[#0F172A] text-right font-mono">
+                                                {data.vehicle_plate || '-'}
+                                            </span>
+                                        </div>
+                                        <div className="text-sm flex justify-between items-start">
                                             <span className="text-gray-500">Paket Layanan: </span>
                                             <span className="font-bold text-[#0F172A] text-right">
                                                 {selectedService?.name || '-'}
@@ -742,6 +823,23 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                                             <span className="font-bold text-[#0F172A] text-right">
                                                 {data.date ? `${data.date.split('-').reverse().join('-')} / ${data.time}` : '-'}
                                             </span>
+                                        </div>
+                                        <div className="border-t pt-4 mt-4">
+                                            <p className="text-xs text-gray-500 uppercase font-semibold mb-3">Detail Pelanggan</p>
+                                            <div className="text-xs space-y-2">
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Nama:</span>
+                                                    <span className="font-medium text-[#0F172A]">{data.name || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Email:</span>
+                                                    <span className="font-medium text-[#0F172A] text-right max-w-[180px]">{data.email || '-'}</span>
+                                                </div>
+                                                <div className="flex justify-between">
+                                                    <span className="text-gray-600">Telepon:</span>
+                                                    <span className="font-medium text-[#0F172A]">{data.phone || '-'}</span>
+                                                </div>
+                                            </div>
                                         </div>
                                     </div>
 

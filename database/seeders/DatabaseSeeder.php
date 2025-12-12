@@ -64,6 +64,15 @@ class DatabaseSeeder extends Seeder
         );
 
         Service::firstOrCreate(
+            ['name' => 'Cuci Express'],
+            [
+                'description' => 'Paket express untuk cuci cepat hanya bagian luar',
+                'duration_minutes' => 30,
+                'price' => 50000,
+            ]
+        );
+
+        Service::firstOrCreate(
             ['name' => 'Salon Mobil'],
             [
                 'description' => 'Paket lengkap salon mobil termasuk detailing',

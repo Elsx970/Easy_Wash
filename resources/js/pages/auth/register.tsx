@@ -15,161 +15,162 @@ export default function Register() {
         <>
             <Head title="Daftar" />
 
-            <div className="min-h-screen w-full flex bg-white">
+            <div className="min-h-screen w-full flex bg-gradient-to-br from-blue-50 to-white">
                 
                 {/* --- BAGIAN KIRI: GAMBAR BACKGROUND --- */}
-                <div className="hidden lg:flex w-1/2 relative overflow-hidden">
+                <div className="hidden lg:flex w-1/2 relative overflow-hidden bg-gradient-to-br from-blue-600 to-blue-800">
                      <img 
                         src="https://images.unsplash.com/photo-1520340356584-f9917d1eea6f?auto=format&fit=crop&w=1480&q=80" 
                         alt="Car Wash Soap Detail" 
-                        className="absolute inset-0 w-full h-full object-cover"
+                        className="absolute inset-0 w-full h-full object-cover opacity-40"
                     />
-                    <div className="absolute inset-0 bg-gradient-to-r from-black/10 to-transparent"></div>
+                    <div className="absolute inset-0 bg-gradient-to-r from-blue-600/40 via-blue-700/30 to-transparent"></div>
+                    
+                    {/* Content di kiri */}
+                    <div className="relative z-10 flex flex-col justify-center items-start p-12 text-white">
+                        <div className="text-5xl font-extrabold mb-6 tracking-tight">
+                            Bergabunglah<br/>dengan Kami<br/>Sekarang!
+                        </div>
+                        <p className="text-lg text-blue-100 mb-8 max-w-md">
+                            Daftar sekarang dan nikmati layanan pencucian kendaraan terbaik dengan harga terjangkau.
+                        </p>
+                    </div>
                 </div>
 
                 {/* --- BAGIAN KANAN: FORM REGISTER --- */}
-                <div className="flex-1 flex flex-col justify-center items-center p-8 lg:p-16 bg-white relative">
+                <div className="flex-1 flex flex-col justify-center items-center p-8 lg:py-24 lg:px-12 bg-white relative">
                     
                     {/* Logo Mobile */}
-                    <div className="lg:hidden absolute top-8 left-8 text-2xl font-extrabold tracking-tighter text-[#0F172A]">
-                        Easy<span className="text-blue-600">Wash</span>
+                    <div className="lg:hidden absolute top-8 left-8 text-2xl font-extrabold tracking-tighter">
+                        <span className="text-[#0F172A]">Easy</span><span className="text-blue-600">Wash</span>
                     </div>
 
-                    <div className="w-full max-w-md space-y-8">
-                        <div className="text-left mb-8">
-                            <h2 className="text-4xl font-extrabold text-gray-900 tracking-tight">
-                                Daftar
-                            </h2>
+                    <div className="w-full max-w-2xl">
+                        <div className="mb-8">
+                            <h1 className="text-3xl font-bold text-[#0F172A] mb-2">Daftar</h1>
+                            <p className="text-gray-600 text-sm">Buat akun baru untuk menikmati layanan kami</p>
                         </div>
 
                         <Form
                             {...store.form()}
                             resetOnSuccess={['password', 'password_confirmation']}
-                            disableWhileProcessing
-                            className="mt-8 space-y-5"
+                            className="space-y-6"
                         >
                             {({ processing, errors }) => (
                                 <>
-                                    <div className="space-y-5">
-                                        {/* --- INPUT NAMA --- */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="name" className="font-bold text-gray-800 text-sm">Nama</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="name"
-                                                    type="text"
-                                                    name="name"
-                                                    required
-                                                    autoFocus
-                                                    tabIndex={1}
-                                                    autoComplete="name"
-                                                    placeholder="Masukan Nama"
-                                                    // PERUBAHAN: py-6 (lebih lebar) & focus ring biru tegas
-                                                    className="bg-white pl-4 pr-12 py-7 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-sm transition-all placeholder:text-gray-400 text-gray-800 font-medium"
-                                                />
-                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-                                                    <User className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                            <InputError message={errors.name} />
+                                    {/* --- INPUT NAMA --- */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="name" className="font-semibold text-gray-800 text-sm">Nama Lengkap</Label>
+                                        <div className="relative group">
+                                            <Input
+                                                id="name"
+                                                type="text"
+                                                name="name"
+                                                required
+                                                autoFocus
+                                                autoComplete="name"
+                                                placeholder="Masukan nama Anda"
+                                                className="w-full pl-12 pr-4 py-4 rounded-lg border-2 border-gray-200 bg-white focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
+                                            />
+                                            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
                                         </div>
-
-                                        {/* --- INPUT EMAIL --- */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="email" className="font-bold text-gray-800 text-sm">Email</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="email"
-                                                    type="email"
-                                                    name="email"
-                                                    required
-                                                    tabIndex={2}
-                                                    autoComplete="email"
-                                                    placeholder="Masukan Email"
-                                                    // PERUBAHAN: py-6 (lebih lebar) & focus ring biru tegas
-                                                    className="bg-white pl-4 pr-12 py-7 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-sm transition-all placeholder:text-gray-400 text-gray-800 font-medium"
-                                                />
-                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-                                                    <Mail className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                            <InputError message={errors.email} />
-                                        </div>
-
-                                        {/* --- INPUT PASSWORD --- */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password" className="font-bold text-gray-800 text-sm">Kata sandi</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="password"
-                                                    type="password"
-                                                    name="password"
-                                                    required
-                                                    tabIndex={3}
-                                                    autoComplete="new-password"
-                                                    placeholder="Masukan Kata Sandi"
-                                                    // PERUBAHAN: py-6 (lebih lebar) & focus ring biru tegas
-                                                    className="bg-white pl-4 pr-12 py-7 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-sm transition-all placeholder:text-gray-400 text-gray-800 font-medium"
-                                                />
-                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-                                                    <Lock className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                            <InputError message={errors.password} />
-                                        </div>
-
-                                        {/* --- INPUT CONFIRM PASSWORD --- */}
-                                        <div className="space-y-2">
-                                            <Label htmlFor="password_confirmation" className="font-bold text-gray-800 text-sm">Konfirmasi Kata sandi</Label>
-                                            <div className="relative">
-                                                <Input
-                                                    id="password_confirmation"
-                                                    type="password"
-                                                    name="password_confirmation"
-                                                    required
-                                                    tabIndex={4}
-                                                    autoComplete="new-password"
-                                                    placeholder="Konfirmasi Kata Sandi"
-                                                    // PERUBAHAN: py-6 (lebih lebar) & focus ring biru tegas
-                                                    className="bg-white pl-4 pr-12 py-7 rounded-xl border border-gray-300 focus:border-blue-600 focus:ring-2 focus:ring-blue-600/20 shadow-sm transition-all placeholder:text-gray-400 text-gray-800 font-medium"
-                                                />
-                                                <div className="absolute inset-y-0 right-0 pr-4 flex items-center pointer-events-none text-gray-400">
-                                                    <Lock className="w-5 h-5" />
-                                                </div>
-                                            </div>
-                                            <InputError message={errors.password_confirmation} />
-                                        </div>
+                                        {errors.name && <InputError message={errors.name} />}
                                     </div>
 
-                                    {/* --- CHECKBOX --- */}
-                                    <div className="flex items-center space-x-2 mt-4">
-                                        <Checkbox id="terms" className="border-gray-300 text-blue-600 focus:ring-blue-600 rounded" />
-                                        <label
-                                            htmlFor="terms"
-                                            className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 text-gray-500"
-                                        >
-                                            Saya setuju dengan semua ketentuan yang berlaku
-                                        </label>
+                                    {/* --- INPUT EMAIL --- */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="email" className="font-semibold text-gray-800 text-sm">Email</Label>
+                                        <div className="relative group">
+                                            <Input
+                                                id="email"
+                                                type="email"
+                                                name="email"
+                                                required
+                                                autoComplete="email"
+                                                placeholder="nama@email.com"
+                                                className="w-full pl-12 pr-4 py-4 rounded-lg border-2 border-gray-200 bg-white focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
+                                            />
+                                            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                        </div>
+                                        {errors.email && <InputError message={errors.email} />}
+                                    </div>
+
+                                    {/* --- INPUT PASSWORD --- */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password" className="font-semibold text-gray-800 text-sm">Kata Sandi</Label>
+                                        <div className="relative group">
+                                            <Input
+                                                id="password"
+                                                type="password"
+                                                name="password"
+                                                required
+                                                autoComplete="new-password"
+                                                placeholder="Buat kata sandi yang kuat"
+                                                className="w-full pl-12 pr-4 py-4 rounded-lg border-2 border-gray-200 bg-white focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
+                                            />
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                        </div>
+                                        {errors.password && <InputError message={errors.password} />}
+                                    </div>
+
+                                    {/* --- INPUT CONFIRM PASSWORD --- */}
+                                    <div className="space-y-2">
+                                        <Label htmlFor="password_confirmation" className="font-semibold text-gray-800 text-sm">Konfirmasi Kata Sandi</Label>
+                                        <div className="relative group">
+                                            <Input
+                                                id="password_confirmation"
+                                                type="password"
+                                                name="password_confirmation"
+                                                required
+                                                autoComplete="new-password"
+                                                placeholder="Konfirmasi kata sandi Anda"
+                                                className="w-full pl-12 pr-4 py-4 rounded-lg border-2 border-gray-200 bg-white focus:outline-none focus:border-blue-500 transition-colors text-gray-900 placeholder:text-gray-400"
+                                            />
+                                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
+                                        </div>
+                                        {errors.password_confirmation && <InputError message={errors.password_confirmation} />}
+                                    </div>
+
+                                    {/* --- CHECKBOX TERMS --- */}
+                                    <div className="flex items-start space-x-3 pt-2">
+                                        <Checkbox 
+                                            id="terms" 
+                                            name="terms"
+                                            className="w-5 h-5 border-gray-300 text-blue-600 rounded mt-0.5"
+                                        />
+                                        <Label htmlFor="terms" className="text-sm text-gray-600 cursor-pointer font-medium leading-relaxed">
+                                            Saya setuju dengan{' '}
+                                            <a href="#" className="text-blue-600 hover:text-blue-700 font-semibold">
+                                                syarat dan ketentuan
+                                            </a>
+                                            {' '}yang berlaku
+                                        </Label>
                                     </div>
 
                                     {/* --- BUTTON DAFTAR --- */}
                                     <Button
                                         type="submit"
-                                        className="w-full py-7
-                                         mt-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all duration-200 transform active:scale-95 text-lg"
-                                        tabIndex={5}
                                         disabled={processing}
-                                        data-test="register-user-button"
+                                        className="w-full py-3 mt-6 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-70 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                                     >
-                                        {processing && <Spinner className="mr-2 h-5 w-5 text-white" />}
-                                        Daftar
+                                        {processing ? (
+                                            <>
+                                                <Spinner className="h-4 w-4 text-white" />
+                                                Sedang mendaftar...
+                                            </>
+                                        ) : (
+                                            'Daftar'
+                                        )}
                                     </Button>
 
                                     {/* --- FOOTER LINK --- */}
-                                    <div className="text-center text-sm text-gray-500 mt-">
+                                    <div className="text-center text-sm text-gray-600 mt-8 pt-0">
                                         Sudah punya akun?{' '}
-                                        <TextLink href={login()} tabIndex={6} className="font-bold text-blue-600 hover:text-blue-800 underline decoration-blue-600/30 hover:decoration-blue-800">
-                                            Masuk
+                                        <TextLink 
+                                            href={login()} 
+                                            className="font-semibold text-blue-600 hover:text-blue-700 transition-colors"
+                                        >
+                                            Masuk di sini
                                         </TextLink>
                                     </div>
                                 </>

@@ -352,27 +352,27 @@ export default function Dashboard({ stats, recentBookings, isAdmin }: Props) {
             value: stats.pending_bookings,
             icon: Clock,
             description: 'Perlu konfirmasi',
-            color: 'text-yellow-600',
-            bg: 'bg-yellow-50',
-            border: 'border-yellow-200',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
         },
         {
             title: 'Sedang Diproses',
             value: stats.in_progress_bookings,
             icon: Calendar,
             description: 'Sedang dicuci',
-            color: 'text-purple-600',
-            bg: 'bg-purple-50',
-            border: 'border-purple-200',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
         },
         {
             title: 'Selesai',
             value: stats.completed_bookings,
             icon: CheckCircle,
             description: 'Siap diambil',
-            color: 'text-emerald-600',
-            bg: 'bg-emerald-50',
-            border: 'border-emerald-200',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
         },
     ];
 
@@ -382,9 +382,9 @@ export default function Dashboard({ stats, recentBookings, isAdmin }: Props) {
             value: stats.total_services,
             icon: Car,
             description: 'Jenis paket cuci',
-            color: 'text-indigo-600',
-            bg: 'bg-indigo-50',
-            border: 'border-indigo-200',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
         });
     }
     if (stats.total_users !== undefined) {
@@ -393,9 +393,9 @@ export default function Dashboard({ stats, recentBookings, isAdmin }: Props) {
             value: stats.total_users,
             icon: Users,
             description: 'Pengguna terdaftar',
-            color: 'text-pink-600',
-            bg: 'bg-pink-50',
-            border: 'border-pink-200',
+            color: 'text-blue-600',
+            bg: 'bg-blue-50',
+            border: 'border-blue-200',
         });
     }
 
@@ -487,69 +487,153 @@ export default function Dashboard({ stats, recentBookings, isAdmin }: Props) {
                             })}
                         </div>
 
-                        {/* Tabel Booking Terbaru */}
-                        <div className="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
-                            <div className="p-6 md:p-8 border-b border-gray-50 flex flex-col md:flex-row justify-between items-center gap-4">
-                                <div>
-                                    <h2 className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
-                                        <Clock className="w-6 h-6 text-blue-600" />
-                                        Pemesanan Terbaru
-                                    </h2>
-                                    <p className="text-sm text-gray-500 mt-1">
-                                        Daftar transaksi pencucian kendaraan terkini.
-                                    </p>
+                        {/* Filter & Sections */}
+                        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                            {/* Antrian Hari Ini (Kiri - Full Height) */}
+                            <div className="lg:col-span-2 bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+                                <div className="p-6 md:p-8 border-b border-gray-50">
+                                    <div className="flex items-center justify-between mb-4">
+                                        <div>
+                                            <h2 className="text-xl font-bold text-[#0F172A] flex items-center gap-2">
+                                                <Calendar className="w-6 h-6 text-blue-600" />
+                                                Antrian Hari Ini
+                                            </h2>
+                                            <p className="text-sm text-gray-500 mt-1">
+                                                Real-time queue untuk {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                                            </p>
+                                        </div>
+                                        <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                                            <span className="text-lg font-bold text-blue-600">🔄</span>
+                                        </div>
+                                    </div>
                                 </div>
-                                <Link
-                                    href={bookings.index().url}
-                                    className="group flex items-center gap-2 text-sm font-bold text-blue-600 bg-blue-50 px-5 py-2.5 rounded-lg hover:bg-blue-600 hover:text-white transition-all"
-                                >
-                                    Lihat Semua
-                                    <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-                                </Link>
+
+                                <div className="divide-y divide-gray-50 max-h-[600px] overflow-y-auto">
+                                    {recentBookings.filter(b => {
+                                        const today = new Date().toDateString();
+                                        const bookingDate = new Date(b.scheduled_at).toDateString();
+                                        return bookingDate === today;
+                                    }).length > 0 ? (
+                                        recentBookings
+                                            .filter(b => {
+                                                const today = new Date().toDateString();
+                                                const bookingDate = new Date(b.scheduled_at).toDateString();
+                                                return bookingDate === today;
+                                            })
+                                            .map((booking, index) => (
+                                                <div key={booking.id} className="p-5 md:p-6 hover:bg-blue-50/50 transition-colors duration-200 border-l-4 border-blue-600">
+                                                    <div className="flex items-start justify-between gap-4">
+                                                        <div className="flex items-start gap-4 flex-1">
+                                                            {/* Queue Number */}
+                                                            <div className="flex-shrink-0">
+                                                                <div className="h-12 w-12 rounded-full bg-gradient-to-br from-blue-600 to-blue-700 flex items-center justify-center text-white font-bold text-lg shadow-lg">
+                                                                    {index + 1}
+                                                                </div>
+                                                            </div>
+                                                            
+                                                            {/* Details */}
+                                                            <div className="flex-1 min-w-0">
+                                                                <div className="flex items-center gap-2 mb-1">
+                                                                    <h4 className="text-base font-bold text-[#0F172A] truncate">{booking.vehicle_plate}</h4>
+                                                                    <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-200 text-gray-700 tracking-wide border border-gray-300 flex-shrink-0">
+                                                                        {booking.vehicle_type}
+                                                                    </span>
+                                                                </div>
+                                                                <p className="text-blue-600 font-semibold text-sm mb-2">{booking.service.name}</p>
+                                                                {booking.user && (
+                                                                    <p className="text-xs text-gray-600 font-medium">
+                                                                        👤 {booking.user.name}
+                                                                    </p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                        
+                                                        {/* Time & Status */}
+                                                        <div className="flex flex-col items-end gap-2 flex-shrink-0">
+                                                            <div className="text-right">
+                                                                <p className="text-sm font-bold text-gray-700">
+                                                                    {new Date(booking.scheduled_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
+                                                                </p>
+                                                            </div>
+                                                            <div>{getStatusBadge(booking.status)}</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                    ) : (
+                                        <div className="py-16 px-6 text-center">
+                                            <Calendar className="w-12 h-12 text-gray-300 mx-auto mb-4" />
+                                            <p className="text-gray-500 font-medium">Tidak ada antrian hari ini</p>
+                                            <p className="text-xs text-gray-400 mt-1">Semua slot kosong, siap melayani</p>
+                                        </div>
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="divide-y divide-gray-50">
-                                {recentBookings.length > 0 ? (
-                                    recentBookings.map((booking) => (
-                                        <div key={booking.id} className="p-6 md:p-8 hover:bg-gray-50 transition-colors duration-200 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-                                            <div className="flex items-start gap-5">
-                                                <div className="hidden md:flex h-14 w-14 rounded-2xl bg-[#0F172A] items-center justify-center text-white shrink-0 shadow-lg">
-                                                    <Car className="w-7 h-7" />
-                                                </div>
-                                                <div>
-                                                    <div className="flex items-center gap-3 mb-1">
-                                                        <h4 className="text-lg font-bold text-[#0F172A]">{booking.vehicle_plate}</h4>
-                                                        <span className="px-2 py-0.5 rounded text-[10px] font-bold uppercase bg-gray-100 text-gray-600 tracking-wide border border-gray-200">
-                                                            {booking.vehicle_type}
-                                                        </span>
-                                                    </div>
-                                                    <p className="text-blue-600 font-semibold text-sm mb-1">{booking.service.name}</p>
-                                                    {booking.user && (
-                                                        <div className="flex items-center gap-1 text-xs text-gray-400">
-                                                            <Users className="w-3 h-3" />
-                                                            {booking.user.name}
-                                                        </div>
-                                                    )}
-                                                </div>
-                                            </div>
-                                            <div className="flex items-center justify-between w-full md:w-auto gap-8">
-                                                <div className="text-left md:text-right">
-                                                    <p className="text-sm font-bold text-gray-700">
-                                                        {new Date(booking.scheduled_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
-                                                    </p>
-                                                    <p className="text-xs text-gray-400">
-                                                        Pukul {new Date(booking.scheduled_at).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })} WIB
-                                                    </p>
-                                                </div>
-                                                <div>{getStatusBadge(booking.status)}</div>
-                                            </div>
+                            {/* Info Sidekick (Kanan) */}
+                            <div className="space-y-6">
+                                {/* Quick Stats */}
+                                <div className="bg-white rounded-2xl shadow-xl border border-gray-100 p-6">
+                                    <h3 className="text-lg font-bold text-[#0F172A] mb-6">Ringkasan Hari Ini</h3>
+                                    
+                                    <div className="space-y-4">
+                                        {/* Today's Queue Count */}
+                                        <div className="p-4 bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg border border-blue-200">
+                                            <p className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-1">Total Antrian</p>
+                                            <p className="text-3xl font-bold text-blue-600">
+                                                {recentBookings.filter(b => {
+                                                    const today = new Date().toDateString();
+                                                    const bookingDate = new Date(b.scheduled_at).toDateString();
+                                                    return bookingDate === today;
+                                                }).length}
+                                            </p>
                                         </div>
-                                    ))
-                                ) : (
-                                    <div className="py-20 text-center">
-                                        <p className="text-sm text-gray-500">Belum ada data pemesanan.</p>
+
+                                        {/* In Progress Today */}
+                                        <div className="p-4 bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg border border-purple-200">
+                                            <p className="text-xs font-bold text-purple-700 uppercase tracking-wide mb-1">Sedang Diproses</p>
+                                            <p className="text-3xl font-bold text-purple-600">
+                                                {recentBookings.filter(b => {
+                                                    const today = new Date().toDateString();
+                                                    const bookingDate = new Date(b.scheduled_at).toDateString();
+                                                    return bookingDate === today && b.status === 'in_progress';
+                                                }).length}
+                                            </p>
+                                        </div>
+
+                                        {/* Waiting Today */}
+                                        <div className="p-4 bg-gradient-to-br from-yellow-50 to-yellow-100 rounded-lg border border-yellow-200">
+                                            <p className="text-xs font-bold text-yellow-700 uppercase tracking-wide mb-1">Menunggu Konfirmasi</p>
+                                            <p className="text-3xl font-bold text-yellow-600">
+                                                {recentBookings.filter(b => {
+                                                    const today = new Date().toDateString();
+                                                    const bookingDate = new Date(b.scheduled_at).toDateString();
+                                                    return bookingDate === today && b.status === 'pending';
+                                                }).length}
+                                            </p>
+                                        </div>
+
+                                        {/* Completed Today */}
+                                        <div className="p-4 bg-gradient-to-br from-emerald-50 to-emerald-100 rounded-lg border border-emerald-200">
+                                            <p className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-1">Selesai</p>
+                                            <p className="text-3xl font-bold text-emerald-600">
+                                                {recentBookings.filter(b => {
+                                                    const today = new Date().toDateString();
+                                                    const bookingDate = new Date(b.scheduled_at).toDateString();
+                                                    return bookingDate === today && b.status === 'completed';
+                                                }).length}
+                                            </p>
+                                        </div>
                                     </div>
-                                )}
+
+                                    <button
+                                        onClick={() => location.reload()}
+                                        className="w-full mt-6 group flex items-center justify-center gap-2 text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-blue-700 px-5 py-3 rounded-lg hover:shadow-lg hover:shadow-blue-600/50 transition-all active:scale-95"
+                                    >
+                                        <TrendingUp className="w-4 h-4" />
+                                        Refresh Data
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
