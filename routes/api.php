@@ -4,6 +4,7 @@ use App\Http\Controllers\Api\ApiAuthController;
 use App\Http\Controllers\Api\ApiBookingController;
 use App\Http\Controllers\Api\ApiLocationController;
 use App\Http\Controllers\Api\ApiServiceController;
+use App\Http\Controllers\AdminManagementController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -47,4 +48,11 @@ Route::prefix('v1')->name('api.v1.')->group(function () {
             Route::delete('services/{service}', [ApiServiceController::class, 'destroy'])->name('services.destroy');
         });
     });
+});
+
+// Admin management routes (admin only)
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::delete('users/{id}', [AdminManagementController::class, 'deleteUser'])->name('users.destroy');
+    Route::put('wash-status/{id}', [AdminManagementController::class, 'updateWashStatus'])->name('wash-status.update');
+    Route::put('transactions/{id}', [AdminManagementController::class, 'updateTransactionStatus'])->name('transactions.update');
 });

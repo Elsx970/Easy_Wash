@@ -112,6 +112,24 @@ export default function Register() {
                                         {errors.password && <InputError message={errors.password} />}
                                     </div>
 
+                                    {/* --- INPUT PASSWORD CONFIRMATION --- */}
+                                    <div className="space-y-3">
+                                        <Label htmlFor="password_confirmation" className="text-base font-bold text-slate-900 pl-1">Konfirmasi Kata Sandi</Label>
+                                        <div className="relative">
+                                            <Input
+                                                id="password_confirmation"
+                                                type="password"
+                                                name="password_confirmation"
+                                                required
+                                                autoComplete="new-password"
+                                                placeholder="Konfirmasi Kata Sandi"
+                                                className="w-full !py-5 pl-6 pr-12 !h-auto text-lg rounded-2xl border-2 border-gray-200 focus:border-blue-600 focus:ring-0 text-slate-800 placeholder:text-gray-400"
+                                            />
+                                            <Lock className="absolute right-5 top-1/2 -translate-y-1/2 w-6 h-6 text-gray-400" />
+                                        </div>
+                                        {errors.password_confirmation && <InputError message={errors.password_confirmation} />}
+                                    </div>
+
                                     {/* --- CHECKBOX --- */}
                                     <div className="flex items-center space-x-3 pt-2">
                                         <Checkbox 
