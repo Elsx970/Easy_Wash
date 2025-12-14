@@ -112,15 +112,28 @@ class BookingController extends Controller
 
         // --- [LOGIKA BARU] DATA ANTREAN REALTIME UNTUK FRONTEND ---
         
-        // 1. Cari antrean yang sedang diproses (InProgress) pada hari yang sama
+        // 1. Cari antrean yang sedang diproses (InProgress) dalam 1 jam sebelum jadwal user
         $date = Carbon::parse($booking->scheduled_at)->toDateString();
+        $userScheduledTime = Carbon::parse($booking->scheduled_at);
+        $oneHourBefore = $userScheduledTime->clone()->subHour();
         
+        // Cari kendaraan in_progress yang dijadwalkan antara 1 jam sebelum sampai jadwal user
         $currentServing = Booking::whereDate('scheduled_at', $date)
             ->where('status', BookingStatus::InProgress->value)
+            ->whereBetween('scheduled_at', [$oneHourBefore, $userScheduledTime])
             ->orderBy('scheduled_at', 'asc')
             ->first();
 
-        // Jika tidak ada yang in_progress, ambil pending terdepan
+        // Jika tidak ada in_progress dalam 1 jam, cari yang paling dekat sebelum user
+        if (!$currentServing) {
+            $currentServing = Booking::whereDate('scheduled_at', $date)
+                ->where('status', BookingStatus::InProgress->value)
+                ->where('scheduled_at', '<', $userScheduledTime)
+                ->orderBy('scheduled_at', 'desc')
+                ->first();
+        }
+
+        // Jika masih tidak ada in_progress, ambil pending terdepan
         if (!$currentServing) {
             $currentServing = Booking::whereDate('scheduled_at', $date)
                 ->where('status', BookingStatus::Pending->value)

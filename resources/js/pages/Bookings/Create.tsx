@@ -154,12 +154,21 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
     console.log('Locations passed to component:', locations);
     console.log('Locations length:', locations.length);
 
-    // --- LOGIKA TANGGAL REALTIME ---
+    // --- LOGIKA TANGGAL REALTIME (dengan timezone awareness) ---
     const today = new Date();
+    // Gunakan tanggal lokal user untuk calendar display (apa yang user lihat)
     const currentYear = today.getFullYear();
     const currentMonth = today.getMonth();
     const currentMonthYear = new Intl.DateTimeFormat('id-ID', { month: 'long', year: 'numeric' }).format(today);
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+
+    // Helper untuk format tanggal lokal ke YYYY-MM-DD
+    const formatLocalDate = (dateObj: Date): string => {
+        const year = dateObj.getFullYear();
+        const month = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+        const day = dateObj.getDate().toString().padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
 
     interface BookingFormData {
         location_id: string;
@@ -616,7 +625,9 @@ export default function BookingsCreate({ services, locations = [] }: Props) {
                                 
                                 <div className="grid grid-cols-7 gap-y-4 gap-x-2">
                                     {Array.from({ length: daysInMonth }, (_, i) => i + 1).map((date) => {
-                                        const dateStr = `${currentYear}-${(currentMonth + 1).toString().padStart(2, '0')}-${date.toString().padStart(2, '0')}`;
+                                        // Buat Date object untuk tanggal ini
+                                        const dateObj = new Date(currentYear, currentMonth, date);
+                                        const dateStr = formatLocalDate(dateObj);
                                         const isSelected = data.date === dateStr;
                                         const isPast = date < today.getDate() && currentMonth === today.getMonth();
 
