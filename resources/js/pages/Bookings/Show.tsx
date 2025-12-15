@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Head, Link } from '@inertiajs/react';
+import { Head, Link, usePage } from '@inertiajs/react'; // Added usePage
 import { Button } from '@/components/ui/button';
 import { dashboard } from '@/routes'; 
 import { 
@@ -20,7 +20,7 @@ import {
 
 // --- INTERFACES ---
 interface QueueData {
-    current_serving?: { // Dibuat optional (?) untuk safety
+    current_serving?: {
         number: string;
         status: string;
     };
@@ -59,7 +59,22 @@ interface Props {
     queue: QueueData; 
 }
 
+// Interface tambahan untuk handle Auth via Inertia
+interface PageProps {
+    auth: {
+        user: {
+            name: string;
+            email: string;
+            // tambahkan field lain jika perlu
+        } | null;
+    };
+    [key: string]: any;
+}
+
 export default function BookingsShow({ booking, queue }: Props) {
+    // AMBIL DATA USER LOGIN (Global Inertia Props)
+    const { auth } = usePage<PageProps>().props;
+
     // STATE
     const [viewMode, setViewMode] = useState<'details' | 'queue'>('details');
 
@@ -448,10 +463,13 @@ export default function BookingsShow({ booking, queue }: Props) {
                         <Link href="/bookings" className="text-blue-600 font-semibold">Riwayat Pesanan</Link>
                     </div>
 
-                    {/* User Profile */}
+                    {/* User Profile DINAMIS */}
                     <div className="flex items-center gap-4 shrink-0 z-10">
                         <div className="hidden md:flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-1 rounded-lg transition-colors">
-                            <span className="text-sm font-bold text-slate-700">Joshua</span>
+                            {/* NAMA USER DIAMBIL DARI AUTH */}
+                            <span className="text-sm font-bold text-slate-700">
+                                {auth.user?.name || 'Guest'}
+                            </span>
                             <div className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center border border-gray-200 text-gray-600">
                                 <UserIcon className="w-4 h-4" />
                             </div>
